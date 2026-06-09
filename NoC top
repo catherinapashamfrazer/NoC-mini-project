@@ -1,0 +1,254 @@
+module fifo(
+    input clk,
+    input reset,
+    input wr_en,
+    input rd_en,
+    input [7:0] data_in,
+    output reg [7:0] data_out,
+    output reg full,
+    output reg empty
+);
+reg [7:0] mem [0:3];
+reg [1:0] wr_ptr;
+reg [1:0] rd_ptr;
+reg [2:0] count;
+always @(posedge clk or posedge reset)
+begin
+    if(reset)
+    begin
+        wr_ptr   <= 0;
+        rd_ptr   <= 0;
+        count    <= 0;
+        data_out <= 0;
+        full     <= 0;
+        empty    <= 1;
+    end
+    else
+    begin
+        case ({wr_en && !full, rd_en && !empty})
+        2'b10:
+        begin
+            // Write only
+            mem[wr_ptr] <= data_in;
+            wr_ptr <= wr_ptr + 1;
+            count <= count + 1;
+        end
+        2'b01:
+        begin
+            // Read only
+            data_out <= mem[rd_ptr];
+            rd_ptr <= rd_ptr + 1;
+            count <= count - 1;
+        end
+        2'b11:
+        begin
+            // Simultaneous read and write
+            mem[wr_ptr] <= data_in;
+            wr_ptr <= wr_ptr + 1;
+            data_out <= mem[rd_ptr];
+            rd_ptr <= rd_ptr + 1;
+            // Count remains same
+        end
+        default:
+        begin
+        end
+        endcase
+        full  <= (count == 4);
+        empty <= (count == 0);
+    end
+end
+endmodule
+module routing_logic(
+    input [1:0] dest,
+    output reg left,
+    output reg right,
+    output reg up,
+    output reg down
+);
+always @(*)
+begin
+    left = 0;
+    right = 0;
+    up = 0;
+    down = 0;
+    case(dest)
+        2'b00: left  = 1;
+        2'b01: right = 1;
+        2'b10: up    = 1;
+        2'b11: down  = 1;
+    endcase
+end
+endmodule
+module router(
+    input clk,
+    input reset,
+    input wr_en,
+    input rd_en,
+    input [7:0] packet_in,
+    output left,
+    output right,
+    output up,
+    output down,
+    output [7:0] packet_out,
+    output full,
+    output empty
+);
+wire [7:0] fifo_out;
+// FIFO Instance
+fifo fifo_inst(
+    .clk(clk),
+    .reset(reset),
+    .wr_en(wr_en),
+    .rd_en(rd_en),
+    .data_in(packet_in),
+    .data_out(fifo_out),
+    .full(full),
+    .empty(empty)
+);
+// Routing Logic Instance
+routing_logic rl_inst(
+    .dest(fifo_out[7:6]),
+    .left(left),
+    .right(right),
+    .up(up),
+    .down(down)
+);
+// Forward packet from FIFO output
+assign packet_out = fifo_out;
+endmodule
+module traffic_generator(
+    input clk,
+    input reset,
+    output reg [7:0] packet_out
+);
+reg [1:0] count;
+always @(posedge clk or posedge reset)
+begin
+    if(reset)
+    begin
+        count <= 0;
+        packet_out <= 8'b00000000;
+    end
+    else
+    begin
+        case(count)
+            2'd0: packet_out <= 8'b00_111111;
+            2'd1: packet_out <= 8'b01_101010;
+            2'd2: packet_out <= 8'b10_110011;
+            2'd3: packet_out <= 8'b11_001100;
+        endcase
+        count <= count + 1;
+    end
+end
+endmodule 
+module noc_top(
+    input clk,
+    input reset,
+    output [7:0] final_packet,
+    output left1,
+    output right1,
+    output up1,
+    output down1,
+    output left2,
+    output right2,
+    output up2,
+    output down2,
+    output [7:0] tg_packet,
+    output [7:0] router1_out,
+    output [7:0] router2_out
+);
+wire full1, empty1;
+wire full2, empty2;
+// Traffic Generator
+traffic_generator TG(
+    .clk(clk),
+    .reset(reset),
+    .packet_out(tg_packet)
+);
+// Router 1
+router R1(
+    .clk(clk),
+    .reset(reset),
+    .wr_en(1'b1),      // Always write
+    .rd_en(1'b1),      // Always read
+    .packet_in(tg_packet),
+    .left(left1),
+    .right(right1),
+    .up(up1),
+    .down(down1),
+    .packet_out(router1_out),
+    .full(full1),
+    .empty(empty1)
+);
+// Router 2
+router R2(
+    .clk(clk),
+    .reset(reset),
+    .wr_en(1'b1),      // Always write
+    .rd_en(1'b1),      // Always read
+    .packet_in(router1_out),
+    .left(left2),
+    .right(right2),
+    .up(up2),
+    .down(down2),
+    .packet_out(router2_out),
+    .full(full2),
+    .empty(empty2)
+);
+assign final_packet = router2_out;
+endmodule
+
+//testbench
+
+module noc_top_tb;
+reg clk;
+reg reset;
+wire [7:0] tg_packet;
+wire [7:0] router1_out;
+wire [7:0] router2_out;
+wire [7:0] final_packet;
+wire left1,right1,up1,down1;
+wire left2,right2,up2,down2;
+noc_top uut(
+    .clk(clk),
+    .reset(reset),
+    .final_packet(final_packet),
+    .left1(left1),
+    .right1(right1),
+    .up1(up1),
+    .down1(down1),
+    .left2(left2),
+    .right2(right2),
+    .up2(up2),
+    .down2(down2),
+    .tg_packet(tg_packet),
+    .router1_out(router1_out),
+    .router2_out(router2_out)
+);
+// Clock
+always #5 clk = ~clk;
+initial
+begin
+    $dumpfile("dump.vcd");
+    $dumpvars(0,noc_top_tb);
+    clk = 0;
+    reset = 1;
+    #20;
+    reset = 0;
+    #250;
+    $finish;
+end
+initial
+begin
+    $monitor(
+    "T=%0t TG=%h R1=%h R2=%h FINAL=%h | L1=%b R1=%b U1=%b D1=%b | L2=%b R2=%b U2=%b D2=%b",
+    $time,
+    tg_packet,
+    router1_out,
+    router2_out,
+    final_packet,
+    left1,right1,up1,down1,
+    left2,right2,up2,down2
+    );
+end
+endmodule
