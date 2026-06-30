@@ -4,25 +4,23 @@ reg reset;
 reg wr_en;
 reg rd_en;
 reg [7:0] packet_in;
-wire left;
-wire right;
-wire up;
-wire down;
 wire [7:0] packet_out;
+wire [2:0] route;
+wire in_ready;
+wire out_valid;
 wire full;
 wire empty;
 // Instantiate Router
-router uut(
+router #(.X(1'b0), .Y(1'b0)) uut(
     .clk(clk),
     .reset(reset),
-    .wr_en(wr_en),
-    .rd_en(rd_en),
-    .packet_in(packet_in),
-    .left(left),
-    .right(right),
-    .up(up),
-    .down(down),
+    .in_valid(wr_en),
+    .in_ready(in_ready),
+    .in_packet(packet_in),
+    .out_valid(out_valid),
+    .out_ready(rd_en),
     .packet_out(packet_out),
+    .out_route(route),
     .full(full),
     .empty(empty)
 );
@@ -31,8 +29,8 @@ always #5 clk = ~clk;
 // Monitor Values
 initial
 begin
-    $monitor("Time=%0t | packet_out=%b | left=%b right=%b up=%b down=%b | full=%b empty=%b",
-             $time, packet_out, left, right, up, down, full, empty);
+    $monitor("Time=%0t | valid=%b ready=%b packet_out=%b route=%0d | full=%b empty=%b",
+             $time, out_valid, in_ready, packet_out, route, full, empty);
 end
 initial
 begin
@@ -60,9 +58,8 @@ begin
     #10;
     wr_en = 0;
     // Read Packets
-    #20;
     rd_en = 1;
-    #40;
+    #80;
     rd_en = 0;
     #20;
     $finish;

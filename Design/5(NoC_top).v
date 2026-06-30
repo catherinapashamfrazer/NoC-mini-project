@@ -116,84 +116,164 @@ routing_logic rl_inst(
 // Forward packet from FIFO output
 assign packet_out = fifo_out;
 endmodule
-module traffic_generator(
-    input clk,
-    input reset,
-    output reg [7:0] packet_out
-);
-reg [1:0] count;
-always @(posedge clk or posedge reset)
-begin
-    if(reset)
-    begin
-        count <= 0;
-        packet_out <= 8'b00000000;
-    end
-    else
-    begin
-        case(count)
-            2'd0: packet_out <= 8'b00_111111;
-            2'd1: packet_out <= 8'b01_101010;
-            2'd2: packet_out <= 8'b10_110011;
-            2'd3: packet_out <= 8'b11_001100;
-        endcase
-        count <= count + 1;
-    end
-end
-endmodule 
 module noc_top(
     input clk,
     input reset,
-    output [7:0] final_packet,
-    output left1,
-    output right1,
-    output up1,
-    output down1,
-    output left2,
-    output right2,
-    output up2,
-    output down2,
+    output tg_valid,
     output [7:0] tg_packet,
-    output [7:0] router1_out,
-    output [7:0] router2_out
+    output [3:0] sink_valid,
+    output [31:0] sink_packet
 );
-wire full1, empty1;
-wire full2, empty2;
-// Traffic Generator
-traffic_generator TG(
+localparam [2:0] ROUTE_LOCAL = 3'd0;
+localparam [2:0] ROUTE_WEST  = 3'd1;
+localparam [2:0] ROUTE_EAST  = 3'd2;
+localparam [2:0] ROUTE_NORTH = 3'd3;
+localparam [2:0] ROUTE_SOUTH = 3'd4;
+
+wire tg_ready;
+wire r00_in_ready;
+wire r01_in_ready;
+wire r10_in_ready;
+wire r11_in_ready;
+wire r00_out_valid;
+wire r01_out_valid;
+wire r10_out_valid;
+wire r11_out_valid;
+wire [7:0] r00_packet;
+wire [7:0] r01_packet;
+wire [7:0] r10_packet;
+wire [7:0] r11_packet;
+wire [2:0] r00_route;
+wire [2:0] r01_route;
+wire [2:0] r10_route;
+wire [2:0] r11_route;
+wire r00_out_ready;
+wire r01_out_ready;
+wire r10_out_ready;
+wire r11_out_ready;
+reg [3:0] sink_valid_r;
+reg [31:0] sink_packet_r;
+
+traffic_generator src(
     .clk(clk),
     .reset(reset),
+    .ready(tg_ready),
+    .valid(tg_valid),
     .packet_out(tg_packet)
 );
-// Router 1
-router R1(
+
+router #(.X(1'b0), .Y(1'b0)) r00(
     .clk(clk),
     .reset(reset),
-    .wr_en(1'b1),      // Always write
-    .rd_en(1'b1),      // Always read
-    .packet_in(tg_packet),
-    .left(left1),
-    .right(right1),
-    .up(up1),
-    .down(down1),
-    .packet_out(router1_out),
-    .full(full1),
-    .empty(empty1)
+    .in_valid(tg_valid),
+    .in_ready(r00_in_ready),
+    .in_packet(tg_packet),
+    .out_valid(r00_out_valid),
+    .out_ready(r00_out_ready),
+    .out_packet(r00_packet),
+    .out_route(r00_route),
+    .full(),
+    .empty()
 );
-// Router 2
-router R2(
+
+router #(.X(1'b1), .Y(1'b0)) r01(
     .clk(clk),
     .reset(reset),
-    .wr_en(1'b1),      // Always write
-    .rd_en(1'b1),      // Always read
-    .packet_in(router1_out),
-    .left(left2),
-    .right(right2),
-    .up(up2),
-    .down(down2),
-    .packet_out(router2_out),
-    .full(full2),
-    .empty(empty2)
+    .in_valid(r00_out_valid && (r00_route == ROUTE_EAST)),
+    .in_ready(r01_in_ready),
+    .in_packet(r00_packet),
+    .out_valid(r01_out_valid),
+    .out_ready(r01_out_ready),
+    .out_packet(r01_packet),
+    .out_route(r01_route),
+    .full(),
+    .empty()
 );
-assign final_packet = router2_out;
+
+router #(.X(1'b0), .Y(1'b1)) r10(
+    .clk(clk),
+    .reset(reset),
+    .in_valid(r00_out_valid && (r00_route == ROUTE_SOUTH)),
+    .in_ready(r10_in_ready),
+    .in_packet(r00_packet),
+    .out_valid(r10_out_valid),
+    .out_ready(r10_out_ready),
+    .out_packet(r10_packet),
+    .out_route(r10_route),
+    .full(),
+    .empty()
+);
+
+router #(.X(1'b1), .Y(1'b1)) r11(
+    .clk(clk),
+    .reset(reset),
+    .in_valid((r01_out_valid && (r01_route == ROUTE_SOUTH)) || (r10_out_valid && (r10_route == ROUTE_EAST))),
+    .in_ready(r11_in_ready),
+    .in_packet(r01_out_valid && (r01_route == ROUTE_SOUTH) ? r01_packet : r10_packet),
+    .out_valid(r11_out_valid),
+    .out_ready(r11_out_ready),
+    .out_packet(r11_packet),
+    .out_route(r11_route),
+    .full(),
+    .empty()
+);
+
+assign tg_ready = r00_in_ready;
+
+assign r00_out_ready = (r00_route == ROUTE_LOCAL) ? 1'b1 :
+                       (r00_route == ROUTE_EAST)  ? r01_in_ready :
+                       (r00_route == ROUTE_SOUTH) ? r10_in_ready : 1'b0;
+
+assign r01_out_ready = (r01_route == ROUTE_LOCAL) ? 1'b1 :
+                       (r01_route == ROUTE_WEST)  ? r00_in_ready :
+                       (r01_route == ROUTE_SOUTH) ? r11_in_ready : 1'b0;
+
+assign r10_out_ready = (r10_route == ROUTE_LOCAL) ? 1'b1 :
+                       (r10_route == ROUTE_NORTH) ? r00_in_ready :
+                       (r10_route == ROUTE_EAST)  ? r11_in_ready : 1'b0;
+
+assign r11_out_ready = (r11_route == ROUTE_LOCAL) ? 1'b1 :
+                       (r11_route == ROUTE_WEST)  ? r10_in_ready :
+                       (r11_route == ROUTE_NORTH) ? r01_in_ready : 1'b0;
+
+always @(posedge clk or posedge reset)
+begin
+    if (reset)
+    begin
+        sink_valid_r <= 4'b0000;
+        sink_packet_r <= 32'h00000000;
+    end
+    else
+    begin
+        sink_valid_r <= 4'b0000;
+
+        if (r00_out_valid && (r00_route == ROUTE_LOCAL))
+        begin
+            sink_valid_r[0] <= 1'b1;
+            sink_packet_r[7:0] <= r00_packet;
+        end
+
+        if (r01_out_valid && (r01_route == ROUTE_LOCAL))
+        begin
+            sink_valid_r[1] <= 1'b1;
+            sink_packet_r[15:8] <= r01_packet;
+        end
+
+        if (r10_out_valid && (r10_route == ROUTE_LOCAL))
+        begin
+            sink_valid_r[2] <= 1'b1;
+            sink_packet_r[23:16] <= r10_packet;
+        end
+
+        if (r11_out_valid && (r11_route == ROUTE_LOCAL))
+        begin
+            sink_valid_r[3] <= 1'b1;
+            sink_packet_r[31:24] <= r11_packet;
+        end
+    end
+end
+
+assign sink_valid = sink_valid_r;
+assign sink_packet = sink_packet_r;
+
 endmodule

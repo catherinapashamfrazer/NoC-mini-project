@@ -65,40 +65,48 @@ begin
     endcase
 end
 endmodule
-module router(
+module router #(
+    parameter X = 1'b0,
+    parameter Y = 1'b0
+)(
     input clk,
     input reset,
-    input wr_en,
-    input rd_en,
-    input [7:0] packet_in,
-    output left,
-    output right,
-    output up,
-    output down,
-    output [7:0] packet_out,
+    input in_valid,
+    output in_ready,
+    input [7:0] in_packet,
+    output out_valid,
+    input out_ready,
+    output [7:0] out_packet,
+    output [2:0] out_route,
     output full,
     output empty
 );
 wire [7:0] fifo_out;
-// FIFO Instance
+wire fifo_read;
+wire local_hit;
+
+assign in_ready = !full;
+assign out_valid = !empty;
+assign out_packet = fifo_out;
+assign fifo_read = out_ready && out_valid;
+
 fifo fifo_inst(
     .clk(clk),
     .reset(reset),
-    .wr_en(wr_en),
-    .rd_en(rd_en),
-    .data_in(packet_in),
+    .wr_en(in_valid && in_ready),
+    .rd_en(fifo_read),
+    .data_in(in_packet),
     .data_out(fifo_out),
     .full(full),
     .empty(empty)
 );
-// Routing Logic Instance
-routing_logic rl_inst(
+
+routing_logic #(
+    .X(X),
+    .Y(Y)
+) rl_inst(
     .dest(fifo_out[7:6]),
-    .left(left),
-    .right(right),
-    .up(up),
-    .down(down)
+    .route(out_route),
+    .local_hit(local_hit)
 );
-// Forward packet from FIFO output
-assign packet_out = fifo_out;
 endmodule
