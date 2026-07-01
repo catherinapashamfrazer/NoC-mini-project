@@ -1,0 +1,5 @@
+traffic,latency,throughput,packets_sent,packets_delivered,utilization
+10,4.2,0.08,40,39,0.12
+20,5.1,0.14,40,38,0.25
+30,6.7,0.19,40,37,0.40
+40,8.8,0.23,40,35,0.55

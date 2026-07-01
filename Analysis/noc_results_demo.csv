@@ -1,0 +1,7 @@
+traffic_percent,avg_latency_cycles,throughput_packets_per_cycle,packets_delivered,packet_loss_percent,utilization
+10,4.2,0.08,4,0,0.12
+20,5.1,0.14,4,0,0.18
+30,6.7,0.19,4,0,0.24
+40,8.8,0.23,4,0,0.31
+50,11.3,0.25,4,0,0.35
+60,15.0,0.26,4,0,0.39
