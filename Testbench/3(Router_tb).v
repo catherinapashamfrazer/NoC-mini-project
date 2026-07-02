@@ -19,7 +19,7 @@ router #(.X(1'b0), .Y(1'b0)) uut(
     .in_packet(packet_in),
     .out_valid(out_valid),
     .out_ready(rd_en),
-    .packet_out(packet_out),
+    .out_packet(packet_out),
     .out_route(route),
     .full(full),
     .empty(empty)
