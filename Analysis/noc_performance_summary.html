@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>NoC Performance Analysis</title>
+    <style>
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #f8f9fa; margin: 0; padding: 20px; }
+        .container { max-width: 1000px; margin: 0 auto; background: #ffffff; padding: 30px; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
+        h1 { text-align: center; color: #1a73e8; margin-bottom: 30px; }
+        .charts { display: flex; flex-wrap: wrap; gap: 20px; justify-content: center; }
+        .chart-box { border: 1px solid #e0e0e0; padding: 15px; border-radius: 6px; background: #ffffff; }
+        .metrics { margin-top: 30px; border-collapse: collapse; width: 100%; }
+        .metrics th, .metrics td { border: 1px solid #dddddd; text-align: left; padding: 12px; }
+        .metrics th { background-color: #f1f3f4; color: #333333; }
+        .metrics tr:nth-child(even) { background-color: #f8f9fa; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>NoC Performance Summary (2x2 Mesh)</h1>
+        <div class="charts">
+            <div class="chart-box"><svg width="400" height="300" xmlns="http://www.w3.org/2000/svg" style="background:#ffffff; font-family: sans-serif;">
+<text x="200.0" y="25" text-anchor="middle" font-size="16" font-weight="bold" fill="#333333">Latency vs Traffic Load</text>
+<line x1="60" y1="250.0" x2="370" y2="250.0" stroke="#e5e5e5" stroke-dasharray="4"/>
+<text x="50" y="254.0" text-anchor="end" font-size="10" fill="#666666">3.12</text>
+<line x1="60" y1="197.5" x2="370" y2="197.5" stroke="#e5e5e5" stroke-dasharray="4"/>
+<text x="50" y="201.5" text-anchor="end" font-size="10" fill="#666666">6.36</text>
+<line x1="60" y1="145.0" x2="370" y2="145.0" stroke="#e5e5e5" stroke-dasharray="4"/>
+<text x="50" y="149.0" text-anchor="end" font-size="10" fill="#666666">9.60</text>
+<line x1="60" y1="92.5" x2="370" y2="92.5" stroke="#e5e5e5" stroke-dasharray="4"/>
+<text x="50" y="96.5" text-anchor="end" font-size="10" fill="#666666">12.84</text>
+<line x1="60" y1="40.0" x2="370" y2="40.0" stroke="#e5e5e5" stroke-dasharray="4"/>
+<text x="50" y="44.0" text-anchor="end" font-size="10" fill="#666666">16.08</text>
+<line x1="60.0" y1="40" x2="60.0" y2="250" stroke="#e5e5e5" stroke-dasharray="4"/>
+<text x="60.0" y="268" text-anchor="middle" font-size="10" fill="#666666">10.0</text>
+<line x1="122.0" y1="40" x2="122.0" y2="250" stroke="#e5e5e5" stroke-dasharray="4"/>
+<text x="122.0" y="268" text-anchor="middle" font-size="10" fill="#666666">20.0</text>
+<line x1="184.0" y1="40" x2="184.0" y2="250" stroke="#e5e5e5" stroke-dasharray="4"/>
+<text x="184.0" y="268" text-anchor="middle" font-size="10" fill="#666666">30.0</text>
+<line x1="246.0" y1="40" x2="246.0" y2="250" stroke="#e5e5e5" stroke-dasharray="4"/>
+<text x="246.0" y="268" text-anchor="middle" font-size="10" fill="#666666">40.0</text>
+<line x1="308.0" y1="40" x2="308.0" y2="250" stroke="#e5e5e5" stroke-dasharray="4"/>
+<text x="308.0" y="268" text-anchor="middle" font-size="10" fill="#666666">50.0</text>
+<line x1="370.0" y1="40" x2="370.0" y2="250" stroke="#e5e5e5" stroke-dasharray="4"/>
+<text x="370.0" y="268" text-anchor="middle" font-size="10" fill="#666666">60.0</text>
+<line x1="60" y1="40" x2="60" y2="250" stroke="#333333" stroke-width="1.5"/>
+<line x1="60" y1="250" x2="370" y2="250" stroke="#333333" stroke-width="1.5"/>
+<text x="200.0" y="285" text-anchor="middle" font-size="11" fill="#333333">Traffic Offered (%)</text>
+<text x="15" y="145.0" text-anchor="middle" font-size="11" fill="#333333" transform="rotate(-90 15 145.0)">Latency (cycles)</text>
+<path d="M 60.0 232.5 L 122.0 217.9 L 184.0 192.0 L 246.0 158.0 L 308.0 117.5 L 370.0 57.5" fill="none" stroke="#1a73e8" stroke-width="2.5"/>
+<circle cx="60.0" cy="232.5" r="4" fill="#1a73e8" stroke="#ffffff" stroke-width="1.5"/>
+<circle cx="122.0" cy="217.9" r="4" fill="#1a73e8" stroke="#ffffff" stroke-width="1.5"/>
+<circle cx="184.0" cy="192.0" r="4" fill="#1a73e8" stroke="#ffffff" stroke-width="1.5"/>
+<circle cx="246.0" cy="158.0" r="4" fill="#1a73e8" stroke="#ffffff" stroke-width="1.5"/>
+<circle cx="308.0" cy="117.5" r="4" fill="#1a73e8" stroke="#ffffff" stroke-width="1.5"/>
+<circle cx="370.0" cy="57.5" r="4" fill="#1a73e8" stroke="#ffffff" stroke-width="1.5"/>
+</svg></div>
+            <div class="chart-box"><svg width="400" height="300" xmlns="http://www.w3.org/2000/svg" style="background:#ffffff; font-family: sans-serif;">
+<text x="200.0" y="25" text-anchor="middle" font-size="16" font-weight="bold" fill="#333333">Throughput Trend</text>
+<line x1="60" y1="250.0" x2="370" y2="250.0" stroke="#e5e5e5" stroke-dasharray="4"/>
+<text x="50" y="254.0" text-anchor="end" font-size="10" fill="#666666">0.06</text>
+<line x1="60" y1="197.5" x2="370" y2="197.5" stroke="#e5e5e5" stroke-dasharray="4"/>
+<text x="50" y="201.5" text-anchor="end" font-size="10" fill="#666666">0.12</text>
+<line x1="60" y1="145.0" x2="370" y2="145.0" stroke="#e5e5e5" stroke-dasharray="4"/>
+<text x="50" y="149.0" text-anchor="end" font-size="10" fill="#666666">0.17</text>
+<line x1="60" y1="92.5" x2="370" y2="92.5" stroke="#e5e5e5" stroke-dasharray="4"/>
+<text x="50" y="96.5" text-anchor="end" font-size="10" fill="#666666">0.22</text>
+<line x1="60" y1="40.0" x2="370" y2="40.0" stroke="#e5e5e5" stroke-dasharray="4"/>
+<text x="50" y="44.0" text-anchor="end" font-size="10" fill="#666666">0.28</text>
+<line x1="60.0" y1="40" x2="60.0" y2="250" stroke="#e5e5e5" stroke-dasharray="4"/>
+<text x="60.0" y="268" text-anchor="middle" font-size="10" fill="#666666">10.0</text>
+<line x1="122.0" y1="40" x2="122.0" y2="250" stroke="#e5e5e5" stroke-dasharray="4"/>
+<text x="122.0" y="268" text-anchor="middle" font-size="10" fill="#666666">20.0</text>
+<line x1="184.0" y1="40" x2="184.0" y2="250" stroke="#e5e5e5" stroke-dasharray="4"/>
+<text x="184.0" y="268" text-anchor="middle" font-size="10" fill="#666666">30.0</text>
+<line x1="246.0" y1="40" x2="246.0" y2="250" stroke="#e5e5e5" stroke-dasharray="4"/>
+<text x="246.0" y="268" text-anchor="middle" font-size="10" fill="#666666">40.0</text>
+<line x1="308.0" y1="40" x2="308.0" y2="250" stroke="#e5e5e5" stroke-dasharray="4"/>
+<text x="308.0" y="268" text-anchor="middle" font-size="10" fill="#666666">50.0</text>
+<line x1="370.0" y1="40" x2="370.0" y2="250" stroke="#e5e5e5" stroke-dasharray="4"/>
+<text x="370.0" y="268" text-anchor="middle" font-size="10" fill="#666666">60.0</text>
+<line x1="60" y1="40" x2="60" y2="250" stroke="#333333" stroke-width="1.5"/>
+<line x1="60" y1="250" x2="370" y2="250" stroke="#333333" stroke-width="1.5"/>
+<text x="200.0" y="285" text-anchor="middle" font-size="11" fill="#333333">Traffic Offered (%)</text>
+<text x="15" y="145.0" text-anchor="middle" font-size="11" fill="#333333" transform="rotate(-90 15 145.0)">Throughput (pkts/cycle)</text>
+<path d="M 60.0 232.5 L 122.0 174.2 L 184.0 125.6 L 246.0 86.7 L 308.0 67.2 L 370.0 57.5" fill="none" stroke="#1a73e8" stroke-width="2.5"/>
+<circle cx="60.0" cy="232.5" r="4" fill="#1a73e8" stroke="#ffffff" stroke-width="1.5"/>
+<circle cx="122.0" cy="174.2" r="4" fill="#1a73e8" stroke="#ffffff" stroke-width="1.5"/>
+<circle cx="184.0" cy="125.6" r="4" fill="#1a73e8" stroke="#ffffff" stroke-width="1.5"/>
+<circle cx="246.0" cy="86.7" r="4" fill="#1a73e8" stroke="#ffffff" stroke-width="1.5"/>
+<circle cx="308.0" cy="67.2" r="4" fill="#1a73e8" stroke="#ffffff" stroke-width="1.5"/>
+<circle cx="370.0" cy="57.5" r="4" fill="#1a73e8" stroke="#ffffff" stroke-width="1.5"/>
+</svg></div>
+        </div>
+        
+        <h2>Simulation Summary Table</h2>
+        <table class="metrics">
+            <tr>
+                <th>Traffic (%)</th>
+                <th>Avg Latency (cycles)</th>
+                <th>Throughput (pkts/cycle)</th>
+                <th>Status</th>
+            </tr>
+            <tr><td>10.0</td><td>4.20</td><td>0.0800</td><td style='color:green;font-weight:bold;'>Pass</td></tr><tr><td>20.0</td><td>5.10</td><td>0.1400</td><td style='color:green;font-weight:bold;'>Pass</td></tr><tr><td>30.0</td><td>6.70</td><td>0.1900</td><td style='color:green;font-weight:bold;'>Pass</td></tr><tr><td>40.0</td><td>8.80</td><td>0.2300</td><td style='color:green;font-weight:bold;'>Pass</td></tr><tr><td>50.0</td><td>11.30</td><td>0.2500</td><td style='color:green;font-weight:bold;'>Pass</td></tr><tr><td>60.0</td><td>15.00</td><td>0.2600</td><td style='color:green;font-weight:bold;'>Pass</td></tr>
+        </table>
+    </div>
+</body>
+</html>
