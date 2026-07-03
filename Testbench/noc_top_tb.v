@@ -25,6 +25,7 @@ integer max_delay;
 integer first_inject_cycle;
 integer last_delivery_cycle;
 integer results_fd;
+reg results_local_dir;
 real active_cycles;
 real avg_delay_cycles;
 real throughput_packets_per_cycle;
@@ -163,10 +164,16 @@ begin
     expected_packets[2] = 8'h99;
     expected_packets[3] = 8'hED;
 
+    results_local_dir = 1'b0;
     results_fd = $fopen("Analysis/noc_results.csv", "w");
     if (results_fd == 0)
     begin
-        $display("FATAL ERROR: Unable to open Analysis/noc_results.csv for writing");
+        results_fd = $fopen("noc_results.csv", "w");
+        results_local_dir = 1'b1;
+    end
+    if (results_fd == 0)
+    begin
+        $display("FATAL ERROR: Unable to open Analysis/noc_results.csv or noc_results.csv for writing");
         $finish;
     end
 
@@ -217,6 +224,14 @@ begin
                      delivered_packets,
                      0.0);
             $fclose(results_fd);
+            if (results_local_dir)
+            begin
+                $display("RESULTS_FILE: Written to local simulation directory as 'noc_results.csv'");
+            end
+            else
+            begin
+                $display("RESULTS_FILE: Written to 'Analysis/noc_results.csv'");
+            end
 
             $display("SUMMARY first_inject_cycle=%0d last_delivery_cycle=%0d total_delay=%0d avg_delay=%0d max_delay=%0d",
                      first_inject_cycle,
