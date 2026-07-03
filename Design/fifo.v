@@ -10,7 +10,7 @@ module fifo(
     input wr_en,                // Write Enable: Request to store data_in
     input rd_en,                // Read Enable: Request to retrieve data_out
     input [7:0] data_in,        // 8-bit input data packet
-    output reg [7:0] data_out,  // 8-bit output data packet
+    output [7:0] data_out,      // 8-bit output data packet
     output reg full,            // High when buffer is full (cannot write)
     output reg empty            // High when buffer is empty (cannot read)
 );
@@ -30,6 +30,9 @@ module fifo(
     wire do_write;
     wire do_read;
 
+    // FWFT read: Data at the read pointer is always available combinationally
+    assign data_out = mem[rd_ptr];
+
     // We can read only if there is data in the FIFO
     assign do_read = rd_en && !empty;
 
@@ -45,7 +48,6 @@ module fifo(
             wr_ptr   <= 2'b00;
             rd_ptr   <= 2'b00;
             count    <= 3'b000;
-            data_out <= 8'h00;
             full     <= 1'b0;
             empty    <= 1'b1;
         end
@@ -61,7 +63,6 @@ module fifo(
             // 2. Handle Read Operation
             if (do_read)
             begin
-                data_out <= mem[rd_ptr];      // Output data from read pointer
                 rd_ptr   <= rd_ptr + 1'b1;    // Advance read pointer
             end
 
