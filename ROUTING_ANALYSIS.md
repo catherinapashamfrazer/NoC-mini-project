@@ -1,6 +1,6 @@
 # Routing Analysis
 
-This project currently implements a deterministic, dimension-order style route selection in [Design/2(Routing_logic).v](Design/2(Routing_logic).v). The router inspects the destination field and chooses a single next hop before forwarding packets through [Design/3(Router).v](Design/3(Router).v) and [Design/5(NoC_top).v](Design/5(NoC_top).v).
+This project currently implements a deterministic, dimension-order style route selection in [Design/routing_logic.v](Design/routing_logic.v). The router inspects the destination field and chooses a single next hop before forwarding packets through [Design/router.v](Design/router.v) and [Design/noc_top.v](Design/noc_top.v).
 
 ## Basic XY routing
 
