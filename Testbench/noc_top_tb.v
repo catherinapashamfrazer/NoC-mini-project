@@ -71,13 +71,15 @@ task record_injection;
     begin
         if (injected_packets >= 4)
         begin
-            $fatal(1, "Unexpected extra packet injection: %02h", packet);
+            $display("FATAL ERROR: Unexpected extra packet injection: %02h", packet);
+            $finish;
         end
 
         if (packet != expected_packets[injected_packets])
         begin
-            $fatal(1, "Injection order mismatch at index %0d: got %02h expected %02h",
-                   injected_packets, packet, expected_packets[injected_packets]);
+            $display("FATAL ERROR: Injection order mismatch at index %0d: got %02h expected %02h",
+                     injected_packets, packet, expected_packets[injected_packets]);
+            $finish;
         end
 
         if (!seen_inject[packet])
@@ -103,17 +105,20 @@ task record_delivery;
     begin
         if (expected_sink(packet) != sink_index)
         begin
-            $fatal(1, "Packet %02h reached sink %0d but expected sink %0d", packet, sink_index, expected_sink(packet));
+            $display("FATAL ERROR: Packet %02h reached sink %0d but expected sink %0d", packet, sink_index, expected_sink(packet));
+            $finish;
         end
 
         if (!seen_inject[packet])
         begin
-            $fatal(1, "Packet %02h was delivered before injection was recorded", packet);
+            $display("FATAL ERROR: Packet %02h was delivered before injection was recorded", packet);
+            $finish;
         end
 
         if (seen_deliver[packet])
         begin
-            $fatal(1, "Packet %02h was delivered more than once", packet);
+            $display("FATAL ERROR: Packet %02h was delivered more than once", packet);
+            $finish;
         end
 
         seen_deliver[packet] = 1'b1;
@@ -161,7 +166,8 @@ begin
     results_fd = $fopen("Analysis/noc_results.csv", "w");
     if (results_fd == 0)
     begin
-        $fatal(1, "Unable to open Analysis/noc_results.csv for writing");
+        $display("FATAL ERROR: Unable to open Analysis/noc_results.csv for writing");
+        $finish;
     end
 
     $fdisplay(results_fd, "traffic_percent,avg_latency_cycles,throughput_packets_per_cycle,packets_delivered,packet_loss_percent");
@@ -184,12 +190,14 @@ begin
 
             if (injected_packets != 4)
             begin
-                $fatal(1, "Expected 4 injected packets, got %0d", injected_packets);
+                $display("FATAL ERROR: Expected 4 injected packets, got %0d", injected_packets);
+                $finish;
             end
 
             if (delivered_packets != 4)
             begin
-                $fatal(1, "Expected 4 delivered packets, got %0d", delivered_packets);
+                $display("FATAL ERROR: Expected 4 delivered packets, got %0d", delivered_packets);
+                $finish;
             end
 
             active_cycles = last_delivery_cycle - first_inject_cycle + 1;
@@ -220,10 +228,10 @@ begin
         end
         begin : timeout_guard
             #1000;
-            $fatal(1, "Timeout waiting for all packets to be injected and delivered");
+            $display("FATAL ERROR: Timeout waiting for all packets to be injected and delivered");
+            $finish;
         end
-    join_any
-    disable fork;
+    join
 end
 
 always @(posedge clk)
